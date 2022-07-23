@@ -1,0 +1,227 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+
+    <template id="prod-card-template">
+        <div class="col mt-4">
+            <div class="card" style="width: 18rem;">
+                <img src="https://picsum.photos/200/100" class="card-img-top" alt="...">
+                <div class="card-body">
+                    <h5 class="card-title">Product Name</h5>
+                    <b id="price">price here: 20USD</b>
+                    <p class="card-text">Prod desc Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quis, et!</p>
+                    <button class="btn btn-primary" id="get-id" onclick="getValue(this.getAttribute('value'))" data-bs-toggle="modal" data-bs-target="#exampleModal">Get details</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <div class="container pt-5">
+
+    <button class="btn btn-success" id="btn-add-product">Add product</button>
+    <button class="btn btn-danger" id="btn-delete-product">Delete product</button>
+
+
+
+        <div class="row">
+
+
+
+
+
+        </div>
+
+
+    </div>
+
+
+    
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Product Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+                <p class="pid"></p>
+                <p class="pname"></p>
+                <p class="price"></p>
+                <p class="size"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+    <script>
+        // $(document).ready(function()
+        // {
+        //     setInterval(function() {
+        //             $(".row").load("index.php");
+        //             refresh();
+        //     }, 5000);
+        //     });
+
+            loadProduct();
+
+    function loadProduct(){    
+        $(document).ready(function() {
+            $.ajax({
+                url: "fetch.php",
+                success: function(data) {
+
+                    var json = JSON.parse(data);
+
+                    const template = document.querySelector("#prod-card-template");
+
+                    const parent = document.querySelector(".row");
+
+                    $('.row').empty();
+
+                    for (let i = 0; i < json.length; i++) {
+
+                        //clone the template
+                        let clone = template.content.cloneNode(true);
+
+                        clone.querySelector("div.col div.card div.card-body h5.card-title").innerHTML = json[i].product_name;
+                        clone.querySelector("div.col div.card div.card-body b").innerHTML = json[i].price;
+                        clone.querySelector("div.col div.card div.card-body p.card-text").innerHTML = json[i].size;
+                        clone.querySelector("div.col div.card div.card-body button").value = json[i].id;
+
+                        //apppend
+                        parent.append(clone);
+                    }
+
+                }
+
+
+            })
+
+        });
+    }
+
+
+        $("#btn-add-product").click(function(){
+            $.ajax({
+                url  : "createproduct.php",
+                type : "GET",
+                data :  {
+                    name : "Add product"
+                }
+            })
+            .done(function(data){
+                let result = JSON.parse(data);
+
+                if(result.res == "success"){
+                    // alert("done saving data");
+                    loadProduct();
+                
+                }else{
+                    alert("Error, Something happened");
+                }
+            });
+        });
+
+
+
+        $("#btn-delete-product").click(function(){
+            $.ajax({
+                url  : "deleteproduct.php",
+                type : "GET",
+                data :  {
+                    name : "delete product"
+                }
+            })
+            .done(function(data){
+                let result = JSON.parse(data);
+
+                if(result.res == "success"){
+                    // alert("done saving data");
+                    loadProduct();
+                
+                }else{
+                    alert("Error, Something happened");
+                }
+            });
+        });
+
+        function getValue(value){
+
+            $.ajax({
+                url  : "getsingleproduct.php",
+                type : "GET",
+                data :  {
+                    id : value
+                }
+            })
+            .done(function(data){
+                let result = JSON.parse(data);
+                console.log(result);
+
+                $(".pid").text("Product id : " + result[0].id);
+                $(".pname").text("Product name : " + result[0].product_name);
+                $(".price").text("Product Price : " +result[0].price);
+                $(".size").text("Product Size : " +result[0].size);
+
+                
+              //  $(".modal-body").text("Product id : " + result[0].id + "\n "+ "Product name : " + result[0].product_name + "\n"+ "Product Price : " +result[0].price +"\n" + "Product Size : " +result[0].size);
+
+               // alert("Product id : " + result[0].id + "\n"+ "Product name : " + result[0].product_name + "\n"+ "Product Price : " +result[0].price +"\n" + "Product Size : " +result[0].size);
+
+            });
+        }
+
+        
+
+        
+        // fetch("./data.json")
+        //     .then(function(resp) {
+        //         return resp.json();
+        //     })
+        //     .then(function(data) {
+        //         console.log(data);
+
+        //         for (let i = 0; i < data.length; i++) {
+
+        //             //clone the template
+        //             let clone = template.content.cloneNode(true);
+        //             clone.querySelector("div.col div.card div.card-body h5.card-title").innerHTML = data[i].product_name;
+        //             clone.querySelector("div.col div.card div.card-body b").innerHTML = data[i].price;
+        //             clone.querySelector("div.col div.card div.card-body p.card-text").innerHTML = data[i].size;
+
+
+        //             //apppend
+        //             parent.append(clone);
+        //         }
+
+        //     });
+
+    </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js" integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+</body>
+
+</html>
